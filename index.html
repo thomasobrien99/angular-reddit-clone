@@ -1,0 +1,156 @@
+<!DOCTYPE html>
+<html lang="en" ng-app="realReddit">
+<head>
+	<meta charset="UTF-8">
+	<title>Document</title>
+	<script src="http://ajax.googleapis.com/ajax/libs/angularjs/1.5.5/angular.js"></script>
+	<script src="script.js"></script>
+	<!-- Latest compiled and minified CSS -->
+	<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/css/bootstrap.min.css" integrity="sha384-1q8mTJOASx8j1Au+a5WDVnPi2lkFfwwEAa8hDDdjZlpLegxhjVME1fgjWPGmkzs7" crossorigin="anonymous">
+	
+	<!-- Optional theme -->
+	<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/css/bootstrap-theme.min.css" integrity="sha384-fLW2N01lMqjakBkx3l/M9EahuwpSfeNvV63J5ezn3uZzapT0u7EYsXMjQV+0En5r" crossorigin="anonymous">
+
+	<script src="https://ajax.googleapis.com/ajax/libs/jquery/2.2.2/jquery.min.js"></script>
+
+	<!-- Latest compiled and minified JavaScript -->
+	<script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/js/bootstrap.min.js" integrity="sha384-0mSbJDEHialfmuBBQP6A4Qrprq5OVfW37PRR3j5ELqxss1yVqOtnepnHVP9aJ7xS" crossorigin="anonymous"></script>
+	<style type="text/css">
+		.postImage {
+			display: inline !important;
+			vertical-align: top;
+		}
+		.caption {
+			display: inline-block;
+			width:850px;	
+			padding-top: 0px;
+		}
+		.authorCredit{
+			text-align: right;
+		}
+		.postTitle {
+			margin-top: 0px
+		}
+		.postForm {
+			margin-bottom: 20px;
+		}
+		.unpopular{
+			color:red;
+		}
+		.popular{
+			color:green;
+		}
+		.commentForm{
+
+		}
+
+	</style>
+</head>
+<body ng-controller = 'mainController'>
+  <nav ng-controller = 'navBar' class = 'navbar navbar-default'>
+  	<div class = 'container-fluid'>
+  		<div class = 'navbar-header'>
+  			<a class = 'navbar-brand'>RealReddit</a>
+  		</div>
+  		<div class = 'navbar-collapse'>
+	  		<ul class = 'nav navbar-nav'>
+	  			<li>
+	  				<a ng-click='togglePostForm()'>
+	  					<span class="glyphicon glyphicon-plus" aria-hidden="true"></span> Submit Post
+	  				</a>
+	  			</li>
+	  			<li>
+	  				<a>
+	  					<input type="text" name="searchForm" placeholder="Search">
+	  				</a>
+	  			</li>
+	  			<li>
+	  				<a>Order By</a>
+	  			</li>
+	  			<li class = "dropdown">
+	  				<a href="#" class = "dropdown-toggle" data-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="false">
+	  					<span class="caret"></span>
+	  				</a>
+	  				<ul class= "dropdown-menu">
+	  					<li><a href="#">Votes</a></li>
+	  					<li><a href="#">Date</a></li>
+	  					<li><a href="#">Author</a></li>
+	  				</ul>	
+	  			</li>
+	  		</ul>
+	  	</div>
+  	</div>
+  </nav>
+  <aside ng-controller="postForm" ng-show="view.showForm">
+  	 <div>
+  		<form class="col-md-offset-1 col-md-10 postForm" ng-submit = "submit(e)">
+  		  <div class="form-group">
+  		    <label for="inputTitle">Title</label>
+  		    <input type="text" class="form-control" name="inputTitle" placeholder="Title..." ng-model="newPost.title">
+  		  </div>
+  		  <div class="form-group">
+  		    <label for="inputAuthor">Author</label>
+  		    <input type="text" class="form-control" placeholder="Author..." ng-model="newPost.author">
+  		  </div>
+  		  <div class="form-group">
+  		    <label for="inputImage">Image URL</label>
+  		    <input type="text" class="form-control" name="inputImage" placeholder="Image URL..." ng-model="newPost.img">
+  		  </div>
+  		  <div class="form-group">
+  		    <label for="inputBody">Post Body</label>
+  		      <textarea class ="form-control" name="inputBody" ng-model = "newPost.body"></textarea>
+  		  </div>
+  		  <input class="btn btn-default" type="submit" value="Post">
+  		</form>
+  	</div>
+  </aside>
+
+  <section ng-controller = "posts">
+    <div class="row" ng-repeat="post in view.posts">
+      <div class="col-md-offset-1 col-md-10">
+        <div class="thumbnail well">
+          <img class = 'postImage' src="{{post.img}}" alt="http://lorempixel.com/200/200">
+          <div class="caption">
+            <h4 class="postTitle">{{post.title}} &nbsp;|&nbsp; 
+            		<span class="glyphicon glyphicon-arrow-up" ng-click="vote(post, 1)"></span>
+            		<span class="glyphicon glyphicon-arrow-down" ng-click="vote(post, -1)"></span>
+            		<span ng-class="{unpopular: post.votes < 0, popular: post.votes > 0}">{{post.votes}}</span>
+            </h4>
+            <p class='authorCredit'>By: {{post.author}}</p>
+            <p>{{post.body}}</p>
+            <p>
+            	<span class="glyphicon glyphicon-calendar"></span>  {{post.date | date}} &nbsp;|&nbsp;
+            	
+            	<span ng-click = "showComments(post)">
+            	
+            		<span class="glyphicon glyphicon-comment"></span>  {{post.comments.length}} comments &nbsp;|&nbsp;
+            	
+            	</span>
+            	
+            	<span ng-click = "showCommentForm(post)">
+            	
+            		<span class="glyphicon glyphicon-pencil"></span>  Add Comment 
+            	
+            	</span>
+
+            	<p ng-show = "post.showComments" ng-repeat="comment in post.comments"><strong>{{comment.author}} &nbsp;|&nbsp;</strong>{{comment.body}} </p>
+
+            	<div ng-show = "post.showCommentForm">
+            		<form class="commentForm" ng-submit = "comment(post)" name="commentForm">
+            		  <div class="form-group">
+            		    	<input type="text" class="form-control" name="commentAuthor" placeholder="Author..." ng-model="newComment.author">
+											<input type="text" class="form-control" name="commentBody" placeholder="Comment..." ng-model="newComment.body">
+											<input class="btn btn-default" type="submit" value="Add Comment">
+            		  </div>
+            		</form>
+            	</div>
+
+            </p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+	
+</body>
+</html>
