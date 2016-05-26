@@ -12,6 +12,8 @@
 	<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/css/bootstrap-theme.min.css" integrity="sha384-fLW2N01lMqjakBkx3l/M9EahuwpSfeNvV63J5ezn3uZzapT0u7EYsXMjQV+0En5r" crossorigin="anonymous">
 
 	<script src="https://ajax.googleapis.com/ajax/libs/jquery/2.2.2/jquery.min.js"></script>
+	<script src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.13.0/moment.min.js"></script>
+	<script src="https://cdnjs.cloudflare.com/ajax/libs/angular-moment/1.0.0-beta.6/angular-moment.min.js"></script>
 
 	<!-- Latest compiled and minified JavaScript -->
 	<script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/js/bootstrap.min.js" integrity="sha384-0mSbJDEHialfmuBBQP6A4Qrprq5OVfW37PRR3j5ELqxss1yVqOtnepnHVP9aJ7xS" crossorigin="anonymous"></script>
@@ -40,7 +42,10 @@
 		.popular{
 			color:green;
 		}
-		.commentForm{
+		.badPost{
+			background-color: #ff8080;
+			border-color: red;
+			border-width: 3px;
 
 		}
 
@@ -61,7 +66,7 @@
 	  			</li>
 	  			<li>
 	  				<a>
-	  					<input type="text" name="searchForm" placeholder="Search">
+	  					<input type="text" name="searchForm" ng-model="view.searchTerm" placeholder="Search">
 	  				</a>
 	  			</li>
 	  			<li>
@@ -72,9 +77,9 @@
 	  					<span class="caret"></span>
 	  				</a>
 	  				<ul class= "dropdown-menu">
-	  					<li><a href="#">Votes</a></li>
-	  					<li><a href="#">Date</a></li>
-	  					<li><a href="#">Author</a></li>
+	  					<li ng-click="orderPostsBy('votes')"><a href="#">Votes</a></li>
+	  					<li ng-click="orderPostsBy('date')"><a href="#">Date</a></li>
+	  					<li ng-click="orderPostsBy('author')"><a href="#">Author</a></li>
 	  				</ul>	
 	  			</li>
 	  		</ul>
@@ -83,63 +88,120 @@
   </nav>
   <aside ng-controller="postForm" ng-show="view.showForm">
   	 <div>
-  		<form class="col-md-offset-1 col-md-10 postForm" ng-submit = "submit(e)">
+  		
+  		<form class="col-md-offset-1 col-md-10 postForm" 
+  					name = "postForm" 
+  					ng-submit = "(postForm.$valid && submit(e))" 
+  					novalidate>
+
   		  <div class="form-group">
   		    <label for="inputTitle">Title</label>
-  		    <input type="text" class="form-control" name="inputTitle" placeholder="Title..." ng-model="newPost.title">
+  		    
+  		    <input type="text" 
+  		    			 class="form-control" 
+  		    			 name="inputTitle" 
+  		    			 placeholder="Title..." 
+  		    			 ng-model="newPost.title" 
+  		    			 ng-class="{
+  		    					'badPost': postForm.inputTitle.$invalid && view.postAttempted
+  		    			 }" 
+  		    			 ng-minlength = "2"
+  		    		 	 ng-maxlength = "20"
+  		    		 	 required>
+  		    	
+  		    	<span ng-show='postForm.inputTitle.$invalid && (postForm.inputTitle.$dirty || view.postAttempted)'>Title must be between 2 and 20 characters</span>
   		  </div>
+
   		  <div class="form-group">
   		    <label for="inputAuthor">Author</label>
-  		    <input type="text" class="form-control" placeholder="Author..." ng-model="newPost.author">
+  		    <input type="text" 
+  		    			 class="form-control" 
+  		    			 name="inputAuthor" 
+  		    			 placeholder="Author..." 
+  		    			 ng-model="newPost.author"
+  		    			 ng-class="{
+  		    				'badPost': postForm.inputAuthor.$invalid && view.postAttempted
+  		    			 }" 
+  		    			 ng-minlength = "2"
+  		    		   ng-maxlength = "20"
+  		    		   required>
+  		    <span ng-show='postForm.inputAuthor.$invalid && (postForm.inputAuthor.$dirty || view.postAttempted)'>Author must be between 2 and 20 characters</span>
   		  </div>
+  		  
   		  <div class="form-group">
   		    <label for="inputImage">Image URL</label>
-  		    <input type="text" class="form-control" name="inputImage" placeholder="Image URL..." ng-model="newPost.img">
+  		    <input type="text" 
+  		    			 class="form-control"
+  		    			 name="inputImage"
+  		    			 placeholder="Image URL..."
+  		    			 ng-model="newPost.img" 
+  		    			 ng-class="{
+  		    				'badPost': postForm.inputImage.$invalid && view.postAttempted
+   	    				 }" 
+   	    				 ng-minlength = "5"
+  		    		 	 required>
+  		    <span ng-show='postForm.inputImage.$invalid && (postForm.inputImage.$dirty || view.postAttempted)'>Please enter a valid image URL</span>
   		  </div>
+
   		  <div class="form-group">
   		    <label for="inputBody">Post Body</label>
-  		      <textarea class ="form-control" name="inputBody" ng-model = "newPost.body"></textarea>
+  		     <textarea class ="form-control" 
+  		     					 name="inputBody" 
+  		     					 ng-model = "newPost.body" 
+  		     					 ng-class="{
+  		      				  'badPost': postForm.inputBody.$invalid && view.postAttempted
+  		      				 }"
+  		      				 ng-minlength = "20"
+  		    		 			 required>
+  		      </textarea>
+  		      <span ng-show='postForm.inputBody.$invalid  && (postForm.inputBody.$dirty || view.postAttempted)'>Post must be at least 20 characters!</span>
   		  </div>
-  		  <input class="btn btn-default" type="submit" value="Post">
+
+  		  <input class="btn btn-default" type="submit" value="Post" ng-click=view.postAttempted="true">
+  		
   		</form>
   	</div>
   </aside>
 
   <section ng-controller = "posts">
-    <div class="row" ng-repeat="post in view.posts">
+    <div class="row" ng-repeat="post in view.posts | orderBy: view.orderPref:view.reverse | filter: filterFunction">
       <div class="col-md-offset-1 col-md-10">
         <div class="thumbnail well">
           <img class = 'postImage' src="{{post.img}}" alt="http://lorempixel.com/200/200">
           <div class="caption">
             <h4 class="postTitle">{{post.title}} &nbsp;|&nbsp; 
-            		<span class="glyphicon glyphicon-arrow-up" ng-click="vote(post, 1)"></span>
-            		<span class="glyphicon glyphicon-arrow-down" ng-click="vote(post, -1)"></span>
+            		<span class="glyphicon glyphicon-arrow-up" ng-click="post.votes = post.votes+1"></span>
+            		<span class="glyphicon glyphicon-arrow-down" ng-click="post.votes = post.votes-1"></span>
             		<span ng-class="{unpopular: post.votes < 0, popular: post.votes > 0}">{{post.votes}}</span>
             </h4>
             <p class='authorCredit'>By: {{post.author}}</p>
             <p>{{post.body}}</p>
             <p>
-            	<span class="glyphicon glyphicon-calendar"></span>  {{post.date | date}} &nbsp;|&nbsp;
+            	<span class="glyphicon glyphicon-calendar"></span>  <span am-time-ago="post.date"></span> &nbsp;|&nbsp;
             	
-            	<span ng-click = "showComments(post)">
+            	<span ng-click = "post.showComments = !post.showComments">
             	
-            		<span class="glyphicon glyphicon-comment"></span>  {{post.comments.length}} comments &nbsp;|&nbsp;
+            		<span class="glyphicon glyphicon-comment"></span>  {{post.comments.length}} 
+            			<ng-pluralize count="post.comments.length"
+                 		when="{'1': 'comment', 'other': 'comments'}">	
+                 	</ng-pluralize>&nbsp;|&nbsp;
             	
             	</span>
             	
-            	<span ng-click = "showCommentForm(post)">
+            	<span ng-click = "post.showCommentForm = !post.showCommentForm; post.showComments = true;">
             	
             		<span class="glyphicon glyphicon-pencil"></span>  Add Comment 
             	
             	</span>
 
-            	<p ng-show = "post.showComments" ng-repeat="comment in post.comments"><strong>{{comment.author}} &nbsp;|&nbsp;</strong>{{comment.body}} </p>
+            	<p ng-show = "post.showComments" ng-repeat="comment in post.comments"><strong>{{comment.author}}&nbsp;:&nbsp;</strong>  {{comment.body}} </p>
 
-            	<div ng-show = "post.showCommentForm">
+            	<div ng-show = "post.showCommentForm" ng-controller="commentForm">
             		<form class="commentForm" ng-submit = "comment(post)" name="commentForm">
             		  <div class="form-group">
-            		    	<input type="text" class="form-control" name="commentAuthor" placeholder="Author..." ng-model="newComment.author">
-											<input type="text" class="form-control" name="commentBody" placeholder="Comment..." ng-model="newComment.body">
+            		    	<input type="text" class="form-control" name="commentAuthor" placeholder="Author..." ng-model="newComment.author" required>
+											<input type="text" class="form-control" name="commentBody" placeholder="Comment..." ng-model="newComment.body" required>
+
 											<input class="btn btn-default" type="submit" value="Add Comment">
             		  </div>
             		</form>
